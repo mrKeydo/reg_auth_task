@@ -7,7 +7,6 @@ $compare_password_error = 'Пароль должен совпадать с ук�
 $email_format_error = 'Email указан в неверном формате';
 
 session_start();
-//Чистим старые ошибки
 unset($_SESSION['errors']);
 unset($_SESSION['resp']);
 
@@ -87,10 +86,10 @@ if (isset($_POST['login'])) {
         }
     } else {
         //Ошибок нет. Обрабатываем данные формы
-        userExist($xml_file_name, $login, $email);
+        userExists($xml_file_name, $login, $email);
         createUser($xml_file_name, $_POST['login'], $_POST['password'], $_POST['email'], $_POST['name'], $session);
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $_SESSION['resp']['created'] = 'Пользователь ' . $name . ' успешно создан';
+            $_SESSION['resp']['created'] = 'Пользователь ' . $login . ' успешно создан';
             echo json_encode($_SESSION['resp']);
             exit;
         }
@@ -230,7 +229,7 @@ function login($xml_file_name, $login, $password)
     }
 }
 
-function userExist($xml_file_name, $login, $email)
+function userExists($xml_file_name, $login, $email)
 {
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->validateOnParse = true;

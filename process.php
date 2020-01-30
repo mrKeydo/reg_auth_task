@@ -1,7 +1,7 @@
 <?php
 //Параметры
 $xml_file_name = 'user.xml';
-$wrong_symbols_error = 'Используются недопустимые символы (Допускаются английские буквы, цифры, - , _';
+$wrong_symbols_error = 'Используются недопустимые символы ( Допускаются английские буквы, цифры, - , _ )';
 $empty_field_error = 'Поле не должно быть пустым';
 $compare_password_error = 'Пароль должен совпадать с указанным выше';
 $email_format_error = 'Email указан в неверном формате';
@@ -18,6 +18,8 @@ if (isset($_POST['login_auth'])) {
 
     if (empty($login)) {
         $_SESSION['errors']['login_auth'] = $empty_field_error;
+    } elseif (!preg_match("#^[aA-zZ0-9\-_]+$#", $login)) {
+        $_SESSION['errors']['login_auth'] = $wrong_symbols_error;
     }
     if (empty($password)) {
         $_SESSION['errors']['password_auth'] = $empty_field_error;

@@ -46,7 +46,7 @@ if (isset($_POST['login'])) {
     $confirm_password = trim($_POST['confirm_password']);
     $email = trim($_POST['email']);
     $name = trim($_POST['name']);
-    $session = 'none';
+    $session = 'none'; //пока юзер ни разу не зашел будет none
 
     //Ищем ошибки
     if (empty($login)) {
@@ -87,9 +87,10 @@ if (isset($_POST['login'])) {
         }
     } else {
         //Ошибок нет. Обрабатываем данные формы
+        userExist($xml_file_name, $login, $email);
         createUser($xml_file_name, $_POST['login'], $_POST['password'], $_POST['email'], $_POST['name'], $session);
         if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-            $_SESSION['resp']['created'] = 'Пользователь' . $name . ' успешно создан';
+            $_SESSION['resp']['created'] = 'Пользователь ' . $name . ' успешно создан';
             echo json_encode($_SESSION['resp']);
             exit;
         }
@@ -180,7 +181,7 @@ function login($xml_file_name, $login, $password)
 {
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->validateOnParse = true;
-    $dom->load('user.xml');
+    $dom->load($xml_file_name);
 
     $users = $dom->getElementsByTagName('user');
     //Перебираем юзеров в бд
@@ -221,10 +222,39 @@ function login($xml_file_name, $login, $password)
             }
         }
     }
-    
+
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-        $_SESSION['resp']['not_found'] = 'Пользователь с логином ' . $login . ' не найден';
+        $_SESSION['resp']['not_found'] = 'Пользователь с таким логином или паролем ' . $login . ' не найден';
         echo json_encode($_SESSION['resp']);
         exit;
+    }
+}
+
+function userExist($xml_file_name, $login, $email)
+{
+    $dom = new DOMDocument('1.0', 'UTF-8');
+    $dom->validateOnParse = true;
+    $dom->load($xml_file_name);
+
+    $users = $dom->getElementsByTagName('user');
+    //Перебираем юзеров в бд
+    foreach ($users as $user) {
+        $user_login = $user->getElementsByTagName("login");
+        $login_text = $user_login->item(0)->nodeValue;
+
+        $user_email = $user->getElementsByTagName("email");
+        $email_text = $user_email->item(0)->nodeValue;
+
+        if (strcmp($login_text, $login) == 0 || strcmp($email_text, $email) == 0) {
+            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                if (strcmp($login_text, $login) == 0) {
+                    $_SESSION['resp']['exist'] = 'Пользователь с указанным логином уже существует';
+                } else {
+                    $_SESSION['resp']['exist'] = 'Пользователь с указанной почтой уже существует';
+                }
+                echo json_encode($_SESSION['resp']);
+                exit;
+            }
+        }
     }
 }

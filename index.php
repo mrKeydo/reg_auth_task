@@ -53,6 +53,7 @@
                         <input type="submit" name="registration_button" value="Зарегистрироваться">
                     </form>
                     <p class="created"></p>
+                    <p class="exist"></p>
                 </div>
             </div>
         </div>

@@ -53,6 +53,10 @@ form input {
 	margin-bottom: 10px;
 }
 
+.error {
+	margin-left: 10px;
+}
+
 /*стили ошибок*/
 .error {
 	color: #ff0000;

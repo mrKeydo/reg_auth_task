@@ -78,6 +78,9 @@ $(document).ready(function () {
             type: request_method,
             data: data,
             success: function (resp) {
+                if ('exist' in resp) {
+                    $(".exist").html(resp['exist']);
+                }
                 if ('created' in resp) {
                     $(".created").html(resp['created']);
                 } else {
@@ -99,4 +102,5 @@ $(document).ready(function () {
 function resetErrors() {
     $('form input, form select').removeClass('inputTxtError');
     $('label.error').remove();
+    $('.exist').html('');
 }

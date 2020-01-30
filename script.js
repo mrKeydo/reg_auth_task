@@ -103,4 +103,6 @@ function resetErrors() {
     $('form input, form select').removeClass('inputTxtError');
     $('label.error').remove();
     $('.exist').html('');
+    $('.not_found').html('');
+    $('.created').html('');
 }

@@ -1,6 +1,7 @@
 /*стили панелей*/
 #tabs {
-	margin: 10px 0;
+	margin: 0 auto;
+	width: 60%;
 }
 .tabs-nav {
 	display: table;

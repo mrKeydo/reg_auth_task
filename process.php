@@ -224,7 +224,7 @@ function login($xml_file_name, $login, $password)
     }
 
     if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
-        $_SESSION['resp']['not_found'] = 'Пользователь с таким логином или паролем ' . $login . ' не найден';
+        $_SESSION['resp']['not_found'] = 'Пользователь с таким логином или паролем не найден';
         echo json_encode($_SESSION['resp']);
         exit;
     }

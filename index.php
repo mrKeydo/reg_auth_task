@@ -1,7 +1,3 @@
-<?php
-include "process.php";
-?>
-
 <!doctype html>
 <html lang="en">
 

@@ -1,21 +1,20 @@
-//Проверяем, залогинен ли пользователь
-var post_url = 'process.php';
-var request_method = 'post';
-
-$.ajax({
-    dataType: "json",
-    url: post_url,
-    type: request_method,
-    success: function (resp) {
-        if ('success' in resp) {
-            success_output(resp);
-        }
-    }
-});
-
-
 var data = {};
 $(document).ready(function () {
+    //Проверяем, залогинен ли пользователь
+    var post_url = 'process.php';
+    var request_method = 'post';
+
+    $.ajax({
+        dataType: "json",
+        url: post_url,
+        type: request_method,
+        success: function (resp) {
+            if ('success' in resp) {
+                success_output(resp);
+            }
+        }
+    });
+
     var tab = $('#tabs .tabs-items > div');
     tab.hide().filter(':first').show();
 
@@ -114,12 +113,6 @@ $(document).ready(function () {
             }
         });
     });
-
-    $('.quit').click(function (event) {
-        eraseCookie('session');
-        eraseCookie('name');
-        document.location.reload(true);
-    });
 });
 
 function resetErrors() {
@@ -134,6 +127,12 @@ function success_output(resp) {
     $(".main").html(resp['success']);
 }
 
-function eraseCookie(name) {   
-    document.cookie = name+'=; Max-Age=-99999999;';  
+function eraseCookie(name) {
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC;';
+}
+
+function quit() {
+    eraseCookie('session');
+    eraseCookie('name');
+    document.location.reload(true);
 }

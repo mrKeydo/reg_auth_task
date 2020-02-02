@@ -50,8 +50,8 @@ if (isset($_POST['login_auth'])) {
 //Обработчик для формы регистрации
 if (isset($_POST['login'])) {
     $login = trim($_POST['login']);
-    $password = trim($_POST['password']);
-    $confirm_password = trim($_POST['confirm_password']);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
     $email = trim($_POST['email']);
     $name = trim($_POST['name']);
 
@@ -64,6 +64,8 @@ if (isset($_POST['login'])) {
 
     if (empty($password)) {
         $_SESSION['errors']['password'] = $empty_field_error;
+    } elseif (!preg_match('#^[aA-zZ0-9\-_]+$#', $password)) {
+        $_SESSION['errors']['password'] = $wrong_symbols_error;
     }
 
     if (empty($confirm_password)) {

@@ -61,13 +61,7 @@ $(document).ready(function () {
                 if ('success' in resp) {
                     success_output(resp);
                 } else {
-                    $.each(resp, function (i, v) {
-                        console.log(i + " => " + v);
-                        var msg = '<label class="error" for="' + i + '">' + v + '</label>';
-                        $('input[name="' + i + '"], select[name="' + i + '"]').addClass('inputTxtError').after(msg);
-                    });
-                    var keys = Object.keys(resp);
-                    $('input[name="' + keys[0] + '"]').focus();
+                    showErrors(resp);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -102,12 +96,7 @@ $(document).ready(function () {
                 if ('created' in resp) {
                     $('.output').html(resp['created']);
                 } else {
-                    $.each(resp, function (i, v) {
-                        var msg = '<label class="error" for="' + i + '">' + v + '</label>';
-                        $('input[name="' + i + '"], select[name="' + i + '"]').addClass('inputTxtError').after(msg);
-                    });
-                    var keys = Object.keys(resp);
-                    $('input[name="' + keys[0] + '"]').focus();
+                    showErrors(resp);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -138,4 +127,13 @@ function quit() {
     eraseCookie('session');
     eraseCookie('name');
     document.location.reload(true);
+}
+
+function showErrors(resp) {
+    $.each(resp, function (i, v) {
+        var msg = '<label class="error" for="' + i + '">' + v + '</label>';
+        $('input[name="' + i + '"], select[name="' + i + '"]').addClass('inputTxtError').after(msg);
+    });
+    var keys = Object.keys(resp);
+    $('input[name="' + keys[0] + '"]').focus();
 }

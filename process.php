@@ -10,6 +10,14 @@ session_start();
 unset($_SESSION['errors']);
 unset($_SESSION['resp']);
 
+if (isLoggedIn($xml_file_name)) {
+    if (isAjax()) {
+        $_SESSION['resp']['success'] = successOutput($_COOKIE['name']);
+        echo json_encode($_SESSION['resp']);
+        exit;
+    }
+}
+
 //Обработчик для формы авторизации
 if (isset($_POST['login_auth'])) {
     $login = trim($_POST['login_auth']);
@@ -28,7 +36,7 @@ if (isset($_POST['login_auth'])) {
     $count = substr_count(implode(array_keys($_SESSION)), "errors");
     if ($count > 0) {
         //Формируем ответ с ошибками (AJAX)
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if (isAjax()) {
             echo json_encode($_SESSION['errors']);
             exit;
         }
@@ -45,7 +53,6 @@ if (isset($_POST['login'])) {
     $confirm_password = trim($_POST['confirm_password']);
     $email = trim($_POST['email']);
     $name = trim($_POST['name']);
-    $session = 'none'; //пока юзер ни разу не зашел будет none
 
     //Ищем ошибки
     if (empty($login)) {
@@ -80,15 +87,15 @@ if (isset($_POST['login'])) {
     $count = substr_count(implode(array_keys($_SESSION)), "errors");
     if ($count > 0) {
         //Формируем ответ с ошибками (AJAX)
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        if (isAjax()) {
             echo json_encode($_SESSION['errors']);
             exit;
         }
     } else {
         //Ошибок нет. Обрабатываем данные формы
         userExists($xml_file_name, $login, $email);
-        createUser($xml_file_name, $_POST['login'], $_POST['password'], $_POST['email'], $_POST['name'], $session);
-        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        createUser($xml_file_name, $login, $password, $email, $name);
+        if (isAjax()) {
             $_SESSION['resp']['created'] = 'Пользователь ' . $login . ' успешно создан';
             echo json_encode($_SESSION['resp']);
             exit;
@@ -96,19 +103,15 @@ if (isset($_POST['login'])) {
     }
 }
 
-function createUser($xml_file_name, $login, $password, $email, $name, $session)
+function createUser($xml_file_name, $login, $password, $email, $name)
 {
+    $session = 'none';
+    $sessionApp = 'none';
+
     //Генерим соль для шифрования пароля
     $salt = generateSalt();
 
-    if (!file_exists($xml_file_name)) {
-        //Creates XML string and XML document using the DOM 
-        $dom = new DomDocument('1.0', 'UTF-8');
-        $dom->formatOutput = true; // set the formatOutput attribute of domDocument to true
-        $element = $dom->createElement('users');
-        $dom->appendChild($element);
-        $dom->save($xml_file_name); // save as file
-    }
+    checkXmlFile($xml_file_name);
 
     //ДОБАВЛЯЕМ ЮЗЕРА В XML ФАЙЛ USER.XML
     $dom = new DOMDocument('1.0', 'UTF-8');
@@ -146,10 +149,15 @@ function createUser($xml_file_name, $login, $password, $email, $name, $session)
     $user_salt_text = $dom->createTextNode($salt);
     $user_salt->appendChild($user_salt_text);
 
-    //Узел с id сессии
+    //Узел с id php сессии
     $user_session = $dom->createElement('session');
     $user_session_text = $dom->createTextNode($session);
     $user_session->appendChild($user_session_text);
+
+    //Узел с id сессии приложения
+    $user_session_app = $dom->createElement('sessionApp');
+    $user_session_app_text = $dom->createTextNode($sessionApp);
+    $user_session_app->appendChild($user_session_app_text);
 
     //Собираем сформированные узлы в родительский узел user
     $user->appendChild($user_login);
@@ -158,6 +166,7 @@ function createUser($xml_file_name, $login, $password, $email, $name, $session)
     $user->appendChild($user_name);
     $user->appendChild($user_salt);
     $user->appendChild($user_session);
+    $user->appendChild($user_session_app);
 
     //Вставляем узел user в корневой узел users
     $root->appendChild($user);
@@ -201,20 +210,25 @@ function login($xml_file_name, $login, $password)
                 $user_name = $user->getElementsByTagName("name");
                 $name_text = $user_name->item(0)->nodeValue;
 
-                //Берем id сессии для отправки в куках и сохранения в базе
                 $session_id = session_id();
+                $session_id_app = generateIdApp();
 
-                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                if (isAjax()) {
                     //Создаем cookie с id сессии
-                    setcookie("session", $session_id, time() + 600);
-                    setcookie("name", $name_text, time() + 600);
+                    setcookie("session", $session_id_app, 0);
+                    setcookie("name", $name_text, 0);
 
                     //Запоминаем в базе id сессии
                     $user->getElementsByTagName("session")->item(0)->nodeValue = "";
                     $user->getElementsByTagName("session")->item(0)->appendChild($dom->createTextNode($session_id));
                     $dom->save($xml_file_name);
 
-                    $_SESSION['resp']['success'] = 'Hello, ' . $name_text;
+                    //Запоминаем в базе id сессии приложения
+                    $user->getElementsByTagName("sessionApp")->item(0)->nodeValue = "";
+                    $user->getElementsByTagName("sessionApp")->item(0)->appendChild($dom->createTextNode($session_id_app));
+                    $dom->save($xml_file_name);
+
+                    $_SESSION['resp']['success'] = successOutput($name_text);
                     echo json_encode($_SESSION['resp']);
                     exit;
                 }
@@ -222,7 +236,7 @@ function login($xml_file_name, $login, $password)
         }
     }
 
-    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    if (isAjax()) {
         $_SESSION['resp']['not_found'] = 'Пользователь с таким логином или паролем не найден';
         echo json_encode($_SESSION['resp']);
         exit;
@@ -231,6 +245,8 @@ function login($xml_file_name, $login, $password)
 
 function userExists($xml_file_name, $login, $email)
 {
+    checkXmlFile($xml_file_name);
+
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->validateOnParse = true;
     $dom->load($xml_file_name);
@@ -245,7 +261,7 @@ function userExists($xml_file_name, $login, $email)
         $email_text = $user_email->item(0)->nodeValue;
 
         if (strcmp($login_text, $login) == 0 || strcmp($email_text, $email) == 0) {
-            if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+            if (isAjax()) {
                 if (strcmp($login_text, $login) == 0) {
                     $_SESSION['resp']['exist'] = 'Пользователь с указанным логином уже существует';
                 } else {
@@ -256,4 +272,78 @@ function userExists($xml_file_name, $login, $email)
             }
         }
     }
+}
+
+//Вывод в случае успешного входа
+function successOutput($name_text)
+{
+    $output = '<h1>Hello, ' . $name_text . '</h1>';
+    $output .= '<button class="quit">Выйти</button>';
+    return $output;
+}
+
+function checkXmlFile($xml_file_name)
+{
+    if (!file_exists($xml_file_name)) {
+        $dom = new DomDocument('1.0', 'UTF-8');
+        $dom->formatOutput = true;
+        $element = $dom->createElement('users');
+        $dom->appendChild($element);
+        $dom->save($xml_file_name);
+    }
+}
+
+function isAjax()
+{
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function isLoggedIn($xml_file_name)
+{
+    if (!empty($_COOKIE['session']) && !empty($_COOKIE['name'])) {
+        $session = session_id();
+        $session_id_app = $_COOKIE['session'];
+        $name = $_COOKIE['name'];
+
+        checkXmlFile($xml_file_name);
+
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $dom->validateOnParse = true;
+        $dom->load($xml_file_name);
+
+        $users = $dom->getElementsByTagName('user');
+        //Перебираем юзеров в бд
+        foreach ($users as $user) {
+            $user_name = $user->getElementsByTagName("name");
+            $user_name_text = $user_name->item(0)->nodeValue;
+
+            $user_session = $user->getElementsByTagName("session");
+            $user_session_text = $user_session->item(0)->nodeValue;
+
+            $user_session_id_app = $user->getElementsByTagName("sessionApp");
+            $user_session_id_app_text = $user_session_id_app->item(0)->nodeValue;
+
+            //ищем id сессии
+            if (strcmp($user_name_text, $name) == 0 && strcmp($user_session_id_app_text, $session_id_app) == 0 && strcmp($user_session_text, session_id()) == 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+}
+
+function generateIdApp($length = 128)
+{
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
 }

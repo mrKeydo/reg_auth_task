@@ -1,3 +1,19 @@
+//Проверяем, залогинен ли пользователь
+var post_url = 'process.php';
+var request_method = 'post';
+
+$.ajax({
+    dataType: "json",
+    url: post_url,
+    type: request_method,
+    success: function (resp) {
+        if ('success' in resp) {
+            success_output(resp);
+        }
+    }
+});
+
+
 var data = {};
 $(document).ready(function () {
     var tab = $('#tabs .tabs-items > div');
@@ -41,7 +57,7 @@ $(document).ready(function () {
                     $(".not_found").html(resp['not_found']);
                 }
                 if ('success' in resp) {
-                    $(".main").html("<h1>" + resp['success'] + "</h1>");
+                    success_output(resp);
                 } else {
                     $.each(resp, function (i, v) {
                         console.log(i + " => " + v);
@@ -73,16 +89,16 @@ $(document).ready(function () {
         var request_method = $(this).attr("method");
 
         $.ajax({
-            dataType: "json",
+            dataType: 'json',
             url: post_url,
             type: request_method,
             data: data,
             success: function (resp) {
                 if ('exist' in resp) {
-                    $(".exist").html(resp['exist']);
+                    $('.output').html(resp['exist']);
                 }
                 if ('created' in resp) {
-                    $(".created").html(resp['created']);
+                    $('.output').html(resp['created']);
                 } else {
                     $.each(resp, function (i, v) {
                         var msg = '<label class="error" for="' + i + '">' + v + '</label>';
@@ -92,10 +108,17 @@ $(document).ready(function () {
                     $('input[name="' + keys[0] + '"]').focus();
                 }
             },
-            error: function () {
+            error: function (jqXHR, textStatus, errorThrown) {
                 console.log('there was a problem checking the fields');
+                console.log(jqXHR);
             }
         });
+    });
+
+    $('.quit').click(function (event) {
+        eraseCookie('session');
+        eraseCookie('name');
+        document.location.reload(true);
     });
 });
 
@@ -105,4 +128,12 @@ function resetErrors() {
     $('.exist').html('');
     $('.not_found').html('');
     $('.created').html('');
+}
+
+function success_output(resp) {
+    $(".main").html(resp['success']);
+}
+
+function eraseCookie(name) {   
+    document.cookie = name+'=; Max-Age=-99999999;';  
 }

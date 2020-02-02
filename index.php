@@ -1,10 +1,14 @@
+<?php
+include "process.php";
+?>
+
 <!doctype html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>jQuery UI Tabs - Default functionality</title>
+    <title>Login/Register forms task</title>
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script src="script.js"></script>
@@ -27,7 +31,7 @@
                         <input type="text" name="login_auth"><br>
 
                         <label>Password *</label><br>
-                        <input type="text" name="password_auth"><br>
+                        <input type="password" name="password_auth"><br>
 
                         <input type="submit" name="login_button" value="Войти">
                     </form>
@@ -39,10 +43,10 @@
                         <input type="text" name="login"><br>
 
                         <label>Password *</label><br>
-                        <input type="text" name="password"><br>
+                        <input type="password" name="password"><br>
 
                         <label>Confirm password *</label><br>
-                        <input type="text" name="confirm_password"><br>
+                        <input type="password" name="confirm_password"><br>
 
                         <label>Email *</label><br>
                         <input type="text" name="email"><br>
@@ -52,8 +56,7 @@
 
                         <input type="submit" name="registration_button" value="Зарегистрироваться">
                     </form>
-                    <p class="created"></p>
-                    <p class="exist"></p>
+                    <p class="output"></p>
                 </div>
             </div>
         </div>

@@ -1,20 +1,24 @@
+//Проверяем, залогинен ли пользователь
+var post_url = 'process.php';
+var request_method = 'post';
+
+$.ajax({
+    dataType: "json",
+    url: post_url,
+    type: request_method,
+    success: function (resp) {
+        if ('success' in resp) {
+            success_output(resp);
+        }
+    },
+    error: function (jqXHR, textStatus, errorThrown) {
+        console.log('there was a problem checking the fields');
+        console.log(jqXHR);
+    }
+});
+
 var data = {};
 $(document).ready(function () {
-    //Проверяем, залогинен ли пользователь
-    var post_url = 'process.php';
-    var request_method = 'post';
-
-    $.ajax({
-        dataType: "json",
-        url: post_url,
-        type: request_method,
-        success: function (resp) {
-            if ('success' in resp) {
-                success_output(resp);
-            }
-        }
-    });
-
     var tab = $('#tabs .tabs-items > div');
     tab.hide().filter(':first').show();
 

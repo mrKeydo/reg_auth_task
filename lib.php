@@ -226,10 +226,9 @@ function isLoggedIn($xml_file_name)
             //ищем id сессии
             if (strcmp($user_name_text, $name) == 0 && strcmp($user_session_id_app_text, $session_id_app) == 0 && strcmp($user_session_text, session_id()) == 0) {
                 return true;
-            } else {
-                return false;
             }
         }
+        return false;
     }
 }
 

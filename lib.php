@@ -83,6 +83,8 @@ function generateSalt()
 
 function login($xml_file_name, $login, $password)
 {
+    checkXmlFile($xml_file_name);
+    
     $dom = new DOMDocument('1.0', 'UTF-8');
     $dom->validateOnParse = true;
     $dom->load($xml_file_name);

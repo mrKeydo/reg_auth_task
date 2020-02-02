@@ -10,15 +10,14 @@ $.ajax({
         if ('success' in resp) {
             success_output(resp);
         }
-    },
-    error: function (jqXHR, textStatus, errorThrown) {
-        console.log('there was a problem checking the fields');
-        console.log(jqXHR);
     }
 });
 
 var data = {};
 $(document).ready(function () {
+    //Отображаем страницу после проверки 
+    document.getElementsByTagName("html")[0].style.visibility = "visible";
+
     var tab = $('#tabs .tabs-items > div');
     tab.hide().filter(':first').show();
 
